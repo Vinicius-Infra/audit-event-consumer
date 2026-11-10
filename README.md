@@ -7,12 +7,12 @@
 ![Maven](https://img.shields.io/badge/Apache%20Maven-C71A36?style=for-the-badge&logo=Apache%20Maven&logoColor=white)
 ![Swagger](https://img.shields.io/badge/-Swagger-%23C1272D?style=for-the-badge&logo=swagger&logoColor=white)
 
-Esta é uma API REST robusta desenvolvida em Java 22 com Spring Boot 3, focada em auditoria de eventos e persistência de logs distribuídos. O projeto atua como o serviço de suporte para o ecossistema de microsserviços, garantindo o rastreamento de todas as operações de negócio.
+Esta é uma API REST desenvolvida em Java 17 com Spring Boot 3, focada em auditoria de eventos e persistência de logs distribuídos. O projeto atua como o serviço de suporte para o ecossistema de microsserviços, garantindo o rastreamento de todas as operações de negócio.
 
 ---
 
 ## 🛠️ Tecnologias e Ferramentas
-Linguagem: Java 22 (JVM)
+Linguagem: Java 17
 
 Framework: Spring Boot 3.2.5
 
@@ -23,6 +23,8 @@ Banco de Dados: PostgreSQL 15
 Documentação: SpringDoc OpenAPI (Swagger)
 
 Build Tool: Maven
+
+Mensageria: Spring Kafka (consumidor em desenvolvimento)
 
 Infraestrutura: Docker & Docker Compose
 
@@ -46,16 +48,16 @@ config: Configurações de infraestrutura, CORS e personalização do OpenAPI.
 ## 🚀 Como Rodar o Projeto
 
 Pré-requisitos
-JDK 17 ou 22
+JDK 17+
 
 Docker & Docker Compose
 
 1. Subir o Banco de Dados (PostgreSQL)
-Certifique-se de que o Postgres está rodando na porta 5433 para evitar conflitos com outros serviços:
+O Postgres sobe na porta 5433 para evitar conflito com o banco da user-management-service (5434):
 
 docker-compose up -d
 
-O container criará automaticamente o banco audit_db.
+O container cria automaticamente o banco microservicesdb, e as tabelas são geradas pelo Hibernate.
 
 2. Compilar e Executar
 
@@ -91,7 +93,7 @@ GET	                      /hello	                          Endpoint de health ch
 
 
 ## 🛡️ Observabilidade e Integração
-Este serviço foi desenhado para ser integrado via HTTP. Atualmente, recebe logs da Kotlin API Demo, registrando operações de:
+Hoje a integração é síncrona, via HTTP: a [user-management-service](https://github.com/Vinicius-Infra/user-management-service) (Kotlin) chama `POST /audit/log` a cada operação de usuário, registrando:
 
 CREATE: Quando um novo usuário é inserido.
 
@@ -99,11 +101,14 @@ UPDATE: Quando dados de usuários são alterados.
 
 DELETE: Quando um rastro de remoção é necessário.
 
+### Próximo passo: integração assíncrona via Kafka
+A user-management-service já publica eventos de criação no tópico `audit-log-topic`, e este serviço já tem o `spring-kafka` configurado (`group-id: audit-group`). O próximo passo é implementar o consumidor (`KafkaConsumerService`) para trocar a chamada HTTP por eventos, com retry e Dead Letter Topic.
+
 ---
 
 Autor: Marcos Vinícius da Silva Barreto
 
-LinkedIn: vinicius-barreto-devops
+LinkedIn: [vinicius-barreto-tec](https://www.linkedin.com/in/vinicius-barreto-tec/)
 
 GitHub: Vinicius-Infra
 
